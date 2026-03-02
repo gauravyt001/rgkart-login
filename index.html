@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RGKart Secure Login</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI, sans-serif;}
+
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+}
+
+.card{
+  width:90%;
+  max-width:380px;
+  padding:35px 25px;
+  border-radius:20px;
+  backdrop-filter: blur(15px);
+  background: rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.2);
+  box-shadow:0 20px 40px rgba(0,0,0,0.4);
+  color:#fff;
+  text-align:center;
+}
+
+h2{
+  margin-bottom:25px;
+  font-weight:500;
+}
+
+.inputBox{
+  position:relative;
+  margin-bottom:22px;
+}
+
+.inputBox input{
+  width:100%;
+  padding:14px 40px 14px 12px;
+  border-radius:10px;
+  border:none;
+  outline:none;
+  font-size:14px;
+}
+
+.inputBox label{
+  position:absolute;
+  left:12px;
+  top:14px;
+  font-size:13px;
+  color:#666;
+  pointer-events:none;
+  transition:0.3s;
+}
+
+.inputBox input:focus + label,
+.inputBox input:not(:placeholder-shown) + label{
+  top:-8px;
+  left:10px;
+  font-size:11px;
+  background:#fff;
+  padding:2px 6px;
+  border-radius:6px;
+}
+
+.eye{
+  position:absolute;
+  right:12px;
+  top:14px;
+  cursor:pointer;
+  font-size:14px;
+  color:#333;
+}
+
+button{
+  width:100%;
+  padding:13px;
+  border:none;
+  border-radius:12px;
+  background:#00c6ff;
+  color:#000;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  background:#00a6d6;
+}
+
+.toggle{
+  margin-top:18px;
+  font-size:13px;
+  cursor:pointer;
+  opacity:0.8;
+}
+
+#result{
+  margin-top:15px;
+  font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2 id="title">Login</h2>
+
+  <div class="inputBox">
+    <input type="email" id="email" placeholder=" " required>
+    <label>Email (Gmail only)</label>
+  </div>
+
+  <div class="inputBox">
+    <input type="password" id="password" placeholder=" " required>
+    <label>Password (Min 6 characters)</label>
+    <span class="eye" onclick="togglePassword()">👁</span>
+  </div>
+
+  <button onclick="submitForm()" id="btn">Login</button>
+
+  <div class="toggle" onclick="switchForm()" id="toggleText">
+    Don't have an account? Create Account
+  </div>
+
+  <div id="result"></div>
+</div>
+
+<script>
+
+const url = "https://script.google.com/macros/s/AKfycbxJge_QSwkkVouhO0mhmv0yKCDZrN8Rs_7eycobyUzFN4voAFtkmV-ENYz1fVAVqK0T/exec";
+const redirectLink = "https://rgkart.store.shoopy.in";
+
+let mode = "login";
+
+function switchForm(){
+  if(mode==="login"){
+    mode="signup";
+    title.innerText="Create Account";
+    btn.innerText="Create Account";
+    toggleText.innerText="Already have an account? Login";
+  }else{
+    mode="login";
+    title.innerText="Login";
+    btn.innerText="Login";
+    toggleText.innerText="Don't have an account? Create Account";
+  }
+  result.innerText="";
+}
+
+function togglePassword(){
+  let pass = document.getElementById("password");
+  pass.type = pass.type==="password" ? "text" : "password";
+}
+
+function submitForm(){
+  let email = document.getElementById("email").value.trim();
+  let password = document.getElementById("password").value.trim();
+
+  const gmailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+
+  if(email==="" || password===""){
+    result.innerText="Please fill all fields";
+    result.style.color="orange";
+    return;
+  }
+
+  if(!gmailPattern.test(email)){
+    result.innerText="Only valid Gmail accounts allowed!";
+    result.style.color="red";
+    return;
+  }
+
+  if(password.length < 6){
+    result.innerText="Password must be at least 6 characters!";
+    result.style.color="red";
+    return;
+  }
+
+  btn.innerText="Please wait...";
+  btn.disabled=true;
+
+  fetch(url,{
+    method:"POST",
+    body:new URLSearchParams({
+      action:mode,
+      email:email,
+      password:password
+    })
+  })
+  .then(res=>res.text())
+  .then(data=>{
+    btn.disabled=false;
+    btn.innerText= mode==="login" ? "Login" : "Create Account";
+
+    if(data==="success"){
+      result.innerText="Login Successful!";
+      result.style.color="lightgreen";
+
+      setTimeout(function(){
+        window.location.href=redirectLink;
+      },1000);
+    }
+    else if(data==="created"){
+      result.innerText="Account Created Successfully!";
+      result.style.color="lightgreen";
+    }
+    else if(data==="exists"){
+      result.innerText="Email Already Registered!";
+      result.style.color="red";
+    }
+    else{
+      result.innerText="Invalid Email or Password!";
+      result.style.color="red";
+    }
+  });
+}
+
+</script>
+
+</body>
+</html>
